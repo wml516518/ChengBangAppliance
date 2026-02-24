@@ -1,0 +1,39 @@
+@model List<Product>
+@{
+    ViewData["Title"] = "商品";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var currentCategory = ViewBag.CurrentCategory as string ?? "";
+}
+<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+    <a href="/Mobile" class="btn @(string.IsNullOrEmpty(currentCategory) ? "btn-primary" : "btn-secondary")" style="padding:8px 16px; font-size:14px; min-height:auto; width:auto;">全部</a>
+    @foreach (var c in categories)
+    {
+        <a href="/Mobile?category=@Uri.EscapeDataString(c)" class="btn @(currentCategory == c ? "btn-primary" : "btn-secondary")" style="padding:8px 16px; font-size:14px; min-height:auto; width:auto;">@c</a>
+    }
+</div>
+@if (Model.Count == 0)
+{
+    <p style="text-align:center; color:#6b7280; padding:40px 0;">@(string.IsNullOrEmpty(currentCategory) ? "暂无上架商品" : "该分类下暂无商品")</p>
+}
+else
+{
+    <div style="display:grid; gap:12px;">
+        @foreach (var p in Model)
+        {
+            <a href="/Mobile/Detail/@p.Id" class="card" style="display:flex; text-decoration:none; color:inherit;">
+                <div style="width:100px; height:100px; flex-shrink:0; background:#f3f4f6;">
+                    @if (!string.IsNullOrEmpty(p.ImagePath))
+                    { <img src="@p.ImagePath" alt="" style="width:100%; height:100%; object-fit:cover;" /> }
+                    else
+                    { <span style="display:flex; align-items:center; justify-content:center; height:100%; color:#9ca3af;">无图</span> }
+                </div>
+                <div style="flex:1; padding:12px; min-width:0;">
+                    <div style="font-weight:600; margin-bottom:4px;">@p.Name</div>
+                    <div style="color:#2563eb; font-size:16px;">¥@p.Price.ToString("F2")</div>
+                    @if (!string.IsNullOrEmpty(p.Description))
+                    { <div style="color:#6b7280; font-size:12px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">@p.Description</div> }
+                </div>
+            </a>
+        }
+    </div>
+}

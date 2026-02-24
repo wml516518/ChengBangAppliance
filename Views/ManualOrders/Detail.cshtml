@@ -1,0 +1,232 @@
+@model ManualOrder
+@{
+    ViewData["Title"] = "工单详情";
+    var types = ViewBag.Types as List<ServiceType> ?? new List<ServiceType>();
+    var items = ViewBag.Items as List<ServiceItem> ?? new List<ServiceItem>();
+    var workers = ViewBag.Workers as List<User> ?? new List<User>();
+    string creatorName = ViewBag.CreatorName;
+
+    string StatusText(int s) => s switch { 0 => "待指派", 1 => "已指派", 2 => "进行中", 3 => "已完成", 4 => "已取消", _ => "未知" };
+    string StatusColor(int s) => s switch { 0 => "#92400e", 1 => "#1e40af", 2 => "#2563eb", 3 => "#16a34a", 4 => "#6b7280", _ => "#374151" };
+    string StatusBg(int s) => s switch { 0 => "#fef3c7", 1 => "#dbeafe", 2 => "#bfdbfe", 3 => "#dcfce7", 4 => "#e5e7eb", _ => "#f3f4f6" };
+}
+<style>
+    .detail-form { max-width: 700px; }
+    .section-title { font-size: 16px; font-weight: 600; margin: 20px 0 8px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; color: #374151; }
+    .section-title:first-of-type { margin-top: 0; }
+    .form-row { display: flex; gap: 16px; }
+    .form-row > .form-group { flex: 1; }
+    .field-input { width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; }
+    .action-bar { display: flex; gap: 8px; margin-top: 20px; flex-wrap: wrap; align-items: center; }
+    .status-badge-lg { display: inline-block; padding: 4px 14px; border-radius: 6px; font-weight: 600; font-size: 15px; }
+    .meta-info { font-size: 12px; color: #9ca3af; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f3f4f6; }
+</style>
+<div class="card detail-form">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <h2 style="margin:0;">工单详情</h2>
+        <span class="status-badge-lg" style="background:@StatusBg(Model.Status);color:@StatusColor(Model.Status);">@StatusText(Model.Status)</span>
+    </div>
+    <div style="font-size:13px;color:#6b7280;margin:4px 0 16px;">工单号：@Model.OrderNo</div>
+
+    <form asp-action="Edit" method="post">
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <div class="section-title">服务信息</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>订单类型</label>
+                <select name="ServiceTypeId" id="serviceTypeSelect" class="field-input">
+                    <option value="0">-- 请选择 --</option>
+                    @foreach (var t in types)
+                    {
+                        if (t.Id == Model.ServiceTypeId)
+                        {
+                            <option value="@t.Id" selected>@t.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@t.Id">@t.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>服务项目</label>
+                <select name="ServiceItemId" id="serviceItemSelect" class="field-input">
+                    <option value="0">-- 请选择 --</option>
+                    @foreach (var i in items)
+                    {
+                        if (i.Id == Model.ServiceItemId)
+                        {
+                            <option value="@i.Id" selected>@i.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@i.Id">@i.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>保修类型</label>
+                <div style="display:flex; gap:24px; margin-top:6px;">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal;">
+                        <input type="radio" name="WarrantyType" value="0" @(Model.WarrantyType != 1 ? "checked" : "") /> 包内
+                    </label>
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:normal;">
+                        <input type="radio" name="WarrantyType" value="1" @(Model.WarrantyType == 1 ? "checked" : "") /> 保外
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>金额（元）</label>
+                <input name="Amount" type="number" step="0.01" min="0" value="@Model.Amount.ToString("F2")" class="field-input" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>预约时间段</label>
+            <div class="form-row">
+                <div style="flex:1;">
+                    <input name="AppointmentStart" type="datetime-local" value="@(Model.AppointmentStart?.ToString("yyyy-MM-ddTHH:mm"))" class="field-input" />
+                </div>
+                <span style="display:flex;align-items:center;padding:0 4px;color:#6b7280;">至</span>
+                <div style="flex:1;">
+                    <input name="AppointmentEnd" type="datetime-local" value="@(Model.AppointmentEnd?.ToString("yyyy-MM-ddTHH:mm"))" class="field-input" />
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">联系人信息</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>联系人</label>
+                <input name="ContactName" value="@Model.ContactName" class="field-input" />
+            </div>
+            <div class="form-group">
+                <label>联系方式</label>
+                <input name="ContactPhone" value="@Model.ContactPhone" class="field-input" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>所在区域</label>
+            <input name="Area" value="@Model.Area" placeholder="如：XX市XX区" class="field-input" />
+        </div>
+        <div class="form-group">
+            <label>详细地址</label>
+            <input name="Address" value="@Model.Address" class="field-input" />
+        </div>
+
+        <div class="section-title">指派与备注</div>
+        <div class="form-group">
+            <label>指派师傅</label>
+            <select name="AssignedUserId" class="field-input">
+                <option value="">-- 暂不指派 --</option>
+                @foreach (var w in workers)
+                {
+                    var wLabel = (w.RealName ?? w.UserName) + (string.IsNullOrEmpty(w.Phone) ? "" : $" ({w.Phone})");
+                    if (Model.AssignedUserId == w.Id)
+                    {
+                        <option value="@w.Id" selected>@wLabel</option>
+                    }
+                    else
+                    {
+                        <option value="@w.Id">@wLabel</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="form-group">
+            <label>备注</label>
+            <textarea name="Remark" rows="3" class="field-input">@Model.Remark</textarea>
+        </div>
+
+        @Html.AntiForgeryToken()
+        <div style="display:flex; gap:8px; margin-top:16px;">
+            <button type="submit" class="btn btn-primary">保存修改</button>
+            <a href="/ManualOrders" class="btn btn-secondary">返回列表</a>
+        </div>
+    </form>
+
+    <div class="meta-info">
+        创建人：@creatorName &nbsp;|&nbsp; 创建时间：@Model.CreateTime.ToString("yyyy-MM-dd HH:mm:ss")
+        @if (Model.AssignTime.HasValue)
+        {
+            <span> &nbsp;|&nbsp; 指派时间：@Model.AssignTime.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+        }
+        @if (Model.CompleteTime.HasValue)
+        {
+            <span> &nbsp;|&nbsp; 完成时间：@Model.CompleteTime.Value.ToString("yyyy-MM-dd HH:mm:ss")</span>
+        }
+    </div>
+
+    <div class="action-bar">
+        @if (Model.Status == 1)
+        {
+            <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="status" value="2" />
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary btn-sm">开始处理</button>
+            </form>
+        }
+        @if (Model.Status == 1 || Model.Status == 2)
+        {
+            <form asp-action="UpdateStatus" method="post" style="display:inline;">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="status" value="3" />
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary btn-sm" style="background:#16a34a;">完成</button>
+            </form>
+        }
+        @if (Model.Status < 3)
+        {
+            <form asp-action="UpdateStatus" method="post" style="display:inline;" onsubmit="return confirm('确定取消该工单？');">
+                <input type="hidden" name="id" value="@Model.Id" />
+                <input type="hidden" name="status" value="4" />
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-secondary btn-sm">取消工单</button>
+            </form>
+        }
+        <form asp-action="Delete" method="post" style="display:inline; margin-left:auto;" onsubmit="return confirm('确定删除该工单？此操作不可撤销！');">
+            <input type="hidden" name="id" value="@Model.Id" />
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger btn-sm">删除</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    var serviceTypeSelect = document.getElementById('serviceTypeSelect');
+    var serviceItemSelect = document.getElementById('serviceItemSelect');
+    var savedItemId = @Model.ServiceItemId;
+
+    serviceTypeSelect.addEventListener('change', function () {
+        savedItemId = 0;
+        loadItems(this.value);
+    });
+
+    function loadItems(typeId) {
+        serviceItemSelect.innerHTML = '<option value="0">加载中...</option>';
+        if (!typeId || typeId === '0') {
+            serviceItemSelect.innerHTML = '<option value="0">-- 请先选择订单类型 --</option>';
+            return;
+        }
+        fetch('/ManualOrders/GetServiceItems?typeId=' + typeId)
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var html = '<option value="0">-- 请选择服务项目 --</option>';
+                data.forEach(function (item) {
+                    var sel = item.id === savedItemId ? ' selected' : '';
+                    html += '<option value="' + item.id + '"' + sel + '>' + item.name + '</option>';
+                });
+                serviceItemSelect.innerHTML = html;
+            })
+            .catch(function () {
+                serviceItemSelect.innerHTML = '<option value="0">加载失败</option>';
+            });
+    }
+</script>
+}

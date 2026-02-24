@@ -1,0 +1,43 @@
+@model List<Category>
+@{
+    ViewData["Title"] = "分类管理";
+}
+<div class="card">
+    <h2>分类管理</h2>
+    <p><a href="/Categories/Create" class="btn btn-primary">添加分类</a></p>
+    @if (Model.Count == 0)
+    {
+        <p>暂无分类，请先添加（如：空调、洗衣机、冰箱等）。</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>名称</th>
+                    <th>排序</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.Id</td>
+                        <td>@c.Name</td>
+                        <td>@c.SortOrder</td>
+                        <td>
+                            <a href="/Categories/Edit/@c.Id" class="btn btn-primary btn-sm">编辑</a>
+                            <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('确定删除该分类？');">
+                                <input type="hidden" name="id" value="@c.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

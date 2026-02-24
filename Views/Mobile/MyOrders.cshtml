@@ -1,0 +1,34 @@
+@model List<Order>
+@{
+    ViewData["Title"] = "我的订单";
+    string StatusText(int s) => s switch { 0 => "待支付", 1 => "已支付", 2 => "已完成", 3 => "已取消", _ => "" };
+    string PayMethodText(int m) => m switch { 1 => "微信", 2 => "支付宝", _ => "" };
+}
+@if (Model.Count == 0)
+{
+    <p style="text-align:center; color:#6b7280; padding:40px 0;">暂无订单</p>
+    <a href="/Mobile" class="btn btn-secondary" style="display:block; text-align:center;">去选购</a>
+}
+else
+{
+    @foreach (var o in Model)
+    {
+        <div class="card" style="padding:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <a href="/Mobile/OrderDetail/@o.Id" style="font-weight:600; color:inherit; text-decoration:none;">订单 @o.OrderNo</a>
+                <span style="color:#6b7280; font-size:12px;">@o.CreateTime.ToString("yyyy-MM-dd HH:mm")</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span>¥@o.TotalAmount.ToString("F2") @if (!string.IsNullOrEmpty(PayMethodText(o.PaymentMethod))) { <span style="color:#6b7280; font-size:12px;">(@PayMethodText(o.PaymentMethod))</span> }</span>
+                <span style="display:flex; align-items:center; gap:8px;">
+                    <span style="color:#2563eb;">@StatusText(o.Status)</span>
+                    <form asp-action="DeleteOrder" method="post" style="display:inline;" onsubmit="return confirm('确定删除该订单？');">
+                        <input type="hidden" name="id" value="@o.Id" />
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-secondary" style="padding:6px 12px; font-size:12px; background:#fee2e2; color:#991b1b; border:none; border-radius:6px;">删除</button>
+                    </form>
+                </span>
+            </div>
+        </div>
+    }
+}

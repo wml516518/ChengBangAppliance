@@ -1,0 +1,32 @@
+@{
+    ViewData["Title"] = "新增师傅账号";
+    var error = ViewBag.Error as string;
+}
+<div class="card" style="max-width:400px;">
+    <h2>新增师傅账号</h2>
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="text-danger" style="margin-bottom:12px;">@error</div>
+    }
+    <form asp-action="CreateTechnician" method="post">
+        <div class="form-group">
+            <label>用户名 <span class="text-danger">*</span></label>
+            <input name="userName" value="@(ViewBag.UserName)" placeholder="登录用户名，至少2个字符" />
+        </div>
+        <div class="form-group">
+            <label>密码 <span class="text-danger">*</span></label>
+            <input type="password" name="password" placeholder="至少6位" />
+        </div>
+        <div class="form-group">
+            <label>姓名</label>
+            <input name="realName" value="@(ViewBag.RealName)" placeholder="师傅真实姓名" />
+        </div>
+        <div class="form-group">
+            <label>联系电话</label>
+            <input name="phone" value="@(ViewBag.Phone)" placeholder="手机号" />
+        </div>
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-primary">创建</button>
+        <a href="/Technicians" class="btn btn-secondary">取消</a>
+    </form>
+</div>

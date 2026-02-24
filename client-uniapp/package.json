@@ -1,0 +1,28 @@
+{
+  "name": "chengbang-client",
+  "version": "1.0.0",
+  "description": "诚邦家电 UniApp 客户端",
+  "scripts": {
+    "dev:h5": "cross-env UNI_PLATFORM=h5 vite",
+    "build:h5": "cross-env UNI_PLATFORM=h5 vite build",
+    "dev:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin vite",
+    "build:mp-weixin": "cross-env UNI_PLATFORM=mp-weixin vite build"
+  },
+  "dependencies": {
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "@dcloudio/uni-app": "latest",
+    "@dcloudio/uni-app-vue": "latest",
+    "@dcloudio/uni-components": "latest",
+    "@dcloudio/uni-h5": "latest",
+    "@dcloudio/uni-mp-weixin": "latest",
+    "@dcloudio/uni-cli-shared": "latest",
+    "@dcloudio/vite-plugin-uni": "latest",
+    "vite": "^5.0.0",
+    "sass": "^1.69.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "cross-env": "^7.0.3"
+  }
+}

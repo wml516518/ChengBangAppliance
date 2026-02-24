@@ -1,0 +1,24 @@
+@model Product
+@{
+    ViewData["Title"] = Model.Name;
+}
+<div class="card" style="padding:0;">
+    <div style="background:#f3f4f6; min-height:200px; text-align:center;">
+        @if (!string.IsNullOrEmpty(Model.ImagePath))
+        { <img src="@Model.ImagePath" alt="" style="max-width:100%; max-height:280px; object-fit:contain;" /> }
+        else
+        { <span style="line-height:200px; color:#9ca3af;">暂无图片</span> }
+    </div>
+    <div style="padding:16px;">
+        <h2 style="margin:0 0 8px 0; font-size:20px;">@Model.Name</h2>
+        <div style="color:#2563eb; font-size:24px; font-weight:600;">¥@Model.Price.ToString("F2")</div>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        { <p style="color:#6b7280; margin:12px 0 0 0;">@Model.Description</p> }
+    </div>
+</div>
+<form action="/Mobile/Checkout" method="get" class="form-group">
+    <label>数量</label>
+    <input type="number" name="quantity" value="1" min="1" max="99" style="max-width:120px;" />
+    <input type="hidden" name="productId" value="@Model.Id" />
+    <button type="submit" class="btn btn-primary" style="margin-top:12px;">立即下单</button>
+</form>

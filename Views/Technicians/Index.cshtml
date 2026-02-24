@@ -1,0 +1,69 @@
+@model List<User>
+@{
+    ViewData["Title"] = "师傅管理";
+    var allUsers = ViewBag.AllUsers as List<User> ?? new List<User>();
+}
+<div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <h2 style="margin:0;">师傅管理</h2>
+        <a href="/Technicians/CreateTechnician" class="btn btn-primary">新增师傅账号</a>
+    </div>
+
+    @if (allUsers.Count > 0)
+    {
+        <div style="margin-top:16px; padding:12px; background:#f0f9ff; border-radius:6px;">
+            <strong>从已有用户中添加师傅：</strong>
+            <form asp-action="SetTechnician" method="post" style="display:inline-flex; align-items:center; gap:8px; margin-top:8px;">
+                @Html.AntiForgeryToken()
+                <select name="userId" style="padding:6px;border:1px solid #d1d5db;border-radius:4px;">
+                    @foreach (var u in allUsers)
+                    {
+                        <option value="@u.Id">@(u.RealName ?? u.UserName) @(string.IsNullOrEmpty(u.Phone) ? "" : $"({u.Phone})")</option>
+                    }
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">设为师傅</button>
+            </form>
+        </div>
+    }
+
+    <div style="margin-top:16px;">
+        @if (Model.Count == 0)
+        {
+            <p>暂无师傅，请先添加。</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用户名</th>
+                        <th>姓名</th>
+                        <th>电话</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>@u.Id</td>
+                            <td>@u.UserName</td>
+                            <td>@(u.RealName ?? "—")</td>
+                            <td>@(u.Phone ?? "—")</td>
+                            <td style="font-size:13px;">@u.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td>
+                                <form asp-action="RemoveTechnician" method="post" style="display:inline;" onsubmit="return confirm('确定取消该用户的师傅身份？');">
+                                    <input type="hidden" name="userId" value="@u.Id" />
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">移除</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

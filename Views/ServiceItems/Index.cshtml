@@ -1,0 +1,62 @@
+@model List<ServiceItem>
+@{
+    ViewData["Title"] = "服务项目管理";
+    var types = ViewBag.Types as List<ServiceType> ?? new List<ServiceType>();
+    int? currentTypeId = ViewBag.CurrentTypeId as int?;
+    var typeDict = types.ToDictionary(t => t.Id, t => t.Name);
+}
+<div class="card">
+    <h2>服务项目管理</h2>
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+        <a href="/ServiceItems" class="btn @(currentTypeId == null ? "btn-primary" : "btn-secondary") btn-sm">全部</a>
+        @foreach (var t in types)
+        {
+            <a href="/ServiceItems?typeId=@t.Id" class="btn @(currentTypeId == t.Id ? "btn-primary" : "btn-secondary") btn-sm">@t.Name</a>
+        }
+        <a href="/ServiceItems/Create@(currentTypeId.HasValue ? $"?typeId={currentTypeId}" : "")" class="btn btn-primary" style="margin-left:auto;">添加项目</a>
+    </div>
+    @if (Model.Count == 0)
+    {
+        <p>暂无服务项目。</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>所属类型</th>
+                    <th>项目名称</th>
+                    <th>排序</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@(typeDict.ContainsKey(item.ServiceTypeId) ? typeDict[item.ServiceTypeId] : "-")</td>
+                        <td>@item.Name</td>
+                        <td>@item.SortOrder</td>
+                        <td>
+                            @if (item.IsEnabled)
+                            { <span class="badge badge-success">启用</span> }
+                            else
+                            { <span class="badge badge-secondary">停用</span> }
+                        </td>
+                        <td>
+                            <a href="/ServiceItems/Edit/@item.Id" class="btn btn-primary btn-sm">编辑</a>
+                            <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('确定删除？');">
+                                <input type="hidden" name="id" value="@item.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,0 +1,12 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "错误";
+}
+<div class="card">
+    <h1>错误</h1>
+    <p>处理您的请求时发生错误。</p>
+    @if (Model?.ShowRequestId == true)
+    {
+        <p><strong>请求 ID:</strong> @Model.RequestId</p>
+    }
+</div>

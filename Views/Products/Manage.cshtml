@@ -1,0 +1,64 @@
+@model List<Product>
+@{
+    ViewData["Title"] = "商品管理";
+}
+<div class="card">
+    <h2>商品管理</h2>
+    <p><a href="/Products/Create" class="btn btn-primary">添加商品</a></p>
+    @if (Model.Count == 0)
+    {
+        <p>暂无商品。</p>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>图片</th>
+                    <th>名称</th>
+                    <th>分类</th>
+                    <th>价格</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@p.Id</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(p.ImagePath))
+                            { <img src="@p.ImagePath" alt="" style="max-width:50px; max-height:50px; object-fit:cover; border-radius:4px;" /> }
+                            else
+                            { <span style="color:#9ca3af;">—</span> }
+                        </td>
+                        <td>@p.Name</td>
+                        <td>@(p.Category ?? "-")</td>
+                        <td>¥@p.Price.ToString("F2")</td>
+                        <td>
+                            @if (p.IsOnSale)
+                            { <span class="badge badge-success">上架</span> }
+                            else
+                            { <span class="badge badge-secondary">下架</span> }
+                        </td>
+                        <td>
+                            <a href="/Products/Edit/@p.Id" class="btn btn-primary btn-sm">编辑</a>
+                            <form asp-action="ToggleSale" method="post" style="display:inline;">
+                                <input type="hidden" name="id" value="@p.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-secondary btn-sm">@(p.IsOnSale ? "下架" : "上架")</button>
+                            </form>
+                            <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('确定删除？');">
+                                <input type="hidden" name="id" value="@p.Id" />
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm">删除</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

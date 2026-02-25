@@ -73,9 +73,9 @@ if [ ! -f ".env" ]; then
   fi
 fi
 
-# 构建并启动
+# 构建并启动（--force-recreate 避免旧容器名占用，Podman/Docker 通用）
 log "执行 Docker 构建并启动..."
-$COMPOSE_CMD up -d --build
+$COMPOSE_CMD up -d --build --force-recreate
 
 log "部署完成。访问: http://$(hostname -I 2>/dev/null | awk '{print $1}'):${HTTP_PORT:-80}"
 log "查看日志: cd $PROJECT_DIR && $COMPOSE_CMD logs -f"

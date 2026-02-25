@@ -19,6 +19,10 @@ ARG VITE_BASE_URL=
 ENV VITE_BASE_URL=${VITE_BASE_URL}
 # 抑制 Vite CJS Node API 弃用警告（仅影响构建日志）
 ENV NODE_OPTIONS="--no-deprecation"
+# UniApp CLI 期望源码在 src/ 下（manifest.json 等）
+RUN mkdir -p src && \
+  cp manifest.json pages.json App.vue main.js index.html config.js src/ && \
+  cp -r api pages utils src/
 RUN npm run build:h5
 
 # 阶段2：用 Nginx 提供静态资源

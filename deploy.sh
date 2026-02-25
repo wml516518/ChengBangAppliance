@@ -73,9 +73,33 @@ if [ ! -f ".env" ]; then
   fi
 fi
 
+# 若 80 端口被占用且未指定 HTTP_PORT，则改用 8080
+_port_in_use() {
+  if command -v ss &>/dev/null; then
+    ss -tlnp 2>/dev/null | grep -q ':80 '
+  else
+    netstat -tlnp 2>/dev/null | grep -q ':80 ' || netstat -tln 2>/dev/null | grep -q ':80 '
+  fi
+}
+if _port_in_use; then
+  if [ ! -f ".env" ] || ! grep -q '^HTTP_PORT=' .env 2>/dev/null; then
+    [ -f ".env" ] && echo "HTTP_PORT=8080" >> .env || true
+    warn "检测到 80 端口已被占用，已设置 HTTP_PORT=8080，请使用 http://IP:8080 访问"
+  elif grep -q '^HTTP_PORT=80$' .env 2>/dev/null; then
+    sed -i 's/^HTTP_PORT=80$/HTTP_PORT=8080/' .env
+    warn "检测到 80 端口已被占用，已将 .env 中 HTTP_PORT 改为 8080，请使用 http://IP:8080 访问"
+  fi
+fi
+# 供下方日志显示端口（compose 会自行读取 .env）
+if [ -f ".env" ] && grep -q '^HTTP_PORT=' .env 2>/dev/null; then
+  HTTP_PORT=$(grep '^HTTP_PORT=' .env | head -1 | cut -d= -f2- | tr -d '\r')
+else
+  HTTP_PORT=80
+fi
+
 # 构建并启动（--force-recreate 避免旧容器名占用，Podman/Docker 通用）
 log "执行 Docker 构建并启动..."
 $COMPOSE_CMD up -d --build --force-recreate
 
-log "部署完成。访问: http://$(hostname -I 2>/dev/null | awk '{print $1}'):${HTTP_PORT:-80}"
+log "部署完成。访问: http://$(hostname -I 2>/dev/null | awk '{print $1}'):${HTTP_PORT}"
 log "查看日志: cd $PROJECT_DIR && $COMPOSE_CMD logs -f"

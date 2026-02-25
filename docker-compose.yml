@@ -10,9 +10,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-      # SQLite 数据库持久化到卷
       - ConnectionStrings__Default=Data Source=/app/data/appliance.db
-      # JWT 密钥（生产环境请用 .env 覆盖）
       - Jwt__Key=${JWT_KEY:-chengbang-jwt-secret-key-min-32-chars!!}
       - Jwt__Issuer=${JWT_ISSUER:-ApplianceRepair}
       - Jwt__Audience=${JWT_AUDIENCE:-ApplianceRepair}
@@ -21,13 +19,14 @@ services:
     expose:
       - "8080"
     restart: unless-stopped
+    networks:
+      - chengbang-net
 
   frontend:
     build:
       context: ./client-uniapp
       dockerfile: Dockerfile
       args:
-        # 同域部署传空，API 走相对路径 /api
         - VITE_BASE_URL=
     image: chengbang-frontend:latest
     container_name: chengbang-frontend
@@ -36,6 +35,12 @@ services:
     ports:
       - "${HTTP_PORT:-80}:80"
     restart: unless-stopped
+    networks:
+      - chengbang-net
+
+networks:
+  chengbang-net:
+    driver: bridge
 
 volumes:
   backend-data:

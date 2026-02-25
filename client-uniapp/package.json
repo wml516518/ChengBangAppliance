@@ -14,10 +14,11 @@
   "devDependencies": {
     "@dcloudio/uni-app": "latest",
     "@dcloudio/uni-app-vue": "latest",
+    "@dcloudio/uni-cli-i18n": "latest",
+    "@dcloudio/uni-cli-shared": "latest",
     "@dcloudio/uni-components": "latest",
     "@dcloudio/uni-h5": "latest",
     "@dcloudio/uni-mp-weixin": "latest",
-    "@dcloudio/uni-cli-shared": "latest",
     "@dcloudio/vite-plugin-uni": "latest",
     "vite": "^5.0.0",
     "sass": "^1.69.0",

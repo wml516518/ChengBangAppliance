@@ -9,13 +9,16 @@ COPY package.json package-lock.json* ./
 # 使用国内镜像加速（可选，部署到国内服务器时取消注释下一行）
 # RUN npm config set registry https://registry.npmmirror.com
 
-RUN npm ci --legacy-peer-deps 2>/dev/null || npm install --legacy-peer-deps
+# 先装依赖（无 lock 时用 install，避免 ci 报错）
+RUN npm install --legacy-peer-deps
 
 COPY . ./
 
 # 同域部署时 API 使用相对路径；可构建时传入: --build-arg VITE_BASE_URL=https://api.example.com
 ARG VITE_BASE_URL=
 ENV VITE_BASE_URL=${VITE_BASE_URL}
+# 抑制 Vite CJS Node API 弃用警告（仅影响构建日志）
+ENV NODE_OPTIONS="--no-deprecation"
 RUN npm run build:h5
 
 # 阶段2：用 Nginx 提供静态资源

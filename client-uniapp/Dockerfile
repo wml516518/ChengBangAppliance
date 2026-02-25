@@ -24,6 +24,12 @@ RUN mkdir -p src && \
   cp manifest.json pages.json App.vue main.js index.html config.js src/ && \
   cp -r api pages utils src/
 RUN npm run build:h5
+# 统一复制到固定路径（兼容 dist/build/h5、dist/h5 等）
+RUN mkdir -p /tmp/h5out && \
+  (cp -r /app/dist/build/h5/. /tmp/h5out/ 2>/dev/null) || \
+  (cp -r /app/dist/h5/. /tmp/h5out/ 2>/dev/null) || \
+  (cp -r /app/build/h5/. /tmp/h5out/ 2>/dev/null) || true
+RUN test -f /tmp/h5out/index.html || (echo "H5 build output not found (no index.html)" && ls -laR /app/dist 2>/dev/null; exit 1)
 
 # 阶段2：用 Nginx 提供静态资源
 FROM nginx:alpine AS runtime
@@ -32,8 +38,8 @@ WORKDIR /usr/share/nginx/html
 # 移除默认静态页
 RUN rm -rf /usr/share/nginx/html/*
 
-# UniApp Vite H5 默认输出目录
-COPY --from=build /app/dist/build/h5 ./
+# 从固定路径复制（由上一阶段准备）
+COPY --from=build /tmp/h5out ./
 
 # 复制自定义 nginx 配置（由 docker-compose 挂载或下方 default.conf 提供）
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -60,10 +60,7 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
 }
-
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseCors();
 app.UseRouting();
@@ -71,6 +68,7 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/health", () => Results.Ok("healthy"));
 app.MapControllers();
 app.MapControllerRoute(
     name: "default",

@@ -97,9 +97,9 @@ else
   HTTP_PORT=80
 fi
 
-# 构建并启动（--force-recreate 避免旧容器名占用，Podman/Docker 通用）
+# 构建并启动
 log "执行 Docker 构建并启动..."
-$COMPOSE_CMD up -d --build --force-recreate
+$COMPOSE_CMD up -d --build
 
 log "部署完成。访问: http://$(hostname -I 2>/dev/null | awk '{print $1}'):${HTTP_PORT}"
 log "查看日志: cd $PROJECT_DIR && $COMPOSE_CMD logs -f"

@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Build / IDE
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+
+# 前端不打包进后端镜像
+client-uniapp/
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# 文档与杂项
+*.md
+*.log
+.env
+.env.*

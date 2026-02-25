@@ -19,10 +19,10 @@ public class TechniciansController : Controller
 
     public IActionResult Index()
     {
-        var technicians = _db.Db.Queryable<User>().Where(u => u.IsTechnician).OrderByDescending(u => u.CreateTime).ToList();
-        var allUsers = _db.Db.Queryable<User>().Where(u => !u.IsTechnician).ToList();
-        ViewBag.AllUsers = allUsers;
-        return View(technicians);
+        var allUsers = _db.Db.Queryable<User>().OrderByDescending(u => u.CreateTime).ToList();
+        var nonTechnicians = allUsers.Where(u => !u.IsTechnician).ToList();
+        ViewBag.AllUsers = nonTechnicians;
+        return View(allUsers);
     }
 
     [HttpPost]
@@ -55,26 +55,70 @@ public class TechniciansController : Controller
         return View();
     }
 
+    /// <summary>角色：1=管理员 2=用户 3=师傅</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult CreateTechnician(string userName, string password, string? realName, string? phone)
+    public IActionResult CreateTechnician(string userName, string password, string confirmPassword, string? realName, string? phone, int role = 2)
     {
-        var (ok, msg) = _auth.Register(userName ?? "", password ?? "", realName, phone, false);
+        if (password != confirmPassword)
+        {
+            ViewBag.Error = "两次输入的密码不一致";
+            ViewBag.RealName = realName;
+            ViewBag.Phone = phone;
+            ViewBag.Role = role;
+            return View();
+        }
+        bool isAdmin = (role == 1);
+        bool isTechnician = (role == 3);
+        var (ok, msg) = _auth.Register(userName ?? "", password ?? "", realName, phone, isAdmin, isTechnician);
         if (!ok)
         {
             ViewBag.Error = msg;
-            ViewBag.UserName = userName;
             ViewBag.RealName = realName;
             ViewBag.Phone = phone;
+            ViewBag.Role = role;
             return View();
         }
-        var user = _db.Db.Queryable<User>().First(u => u.UserName == userName!.Trim());
-        if (user != null)
+        TempData["Success"] = "用户已创建";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public IActionResult Edit(int id)
+    {
+        var user = _db.Db.Queryable<User>().First(u => u.Id == id);
+        if (user == null) return NotFound();
+        return View(user);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, string? realName, string? phone, int role, string? newPassword, string? confirmNewPassword)
+    {
+        var user = _db.Db.Queryable<User>().First(u => u.Id == id);
+        if (user == null) return NotFound();
+
+        if (!string.IsNullOrWhiteSpace(newPassword))
         {
-            user.IsTechnician = true;
-            _db.Db.Updateable(user).ExecuteCommand();
+            if (newPassword.Length < 6)
+            {
+                ViewBag.Error = "新密码至少6个字符";
+                return View(user);
+            }
+            if (newPassword != confirmNewPassword)
+            {
+                ViewBag.Error = "两次输入的密码不一致";
+                return View(user);
+            }
+            user.PasswordHash = AuthService.HashPassword(newPassword);
         }
-        TempData["Success"] = "师傅账号已创建";
+
+        user.RealName = realName?.Trim();
+        user.Phone = phone?.Trim();
+        user.IsAdmin = (role == 1);
+        user.IsTechnician = (role == 3);
+        _db.Db.Updateable(user).ExecuteCommand();
+        TempData["Success"] = "用户信息已更新";
         return RedirectToAction(nameof(Index));
     }
 }

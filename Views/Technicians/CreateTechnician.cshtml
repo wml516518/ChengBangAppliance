@@ -1,9 +1,10 @@
 @{
-    ViewData["Title"] = "新增师傅账号";
+    ViewData["Title"] = "添加用户";
     var error = ViewBag.Error as string;
+    var role = ViewBag.Role as int? ?? 2;
 }
 <div class="card" style="max-width:400px;">
-    <h2>新增师傅账号</h2>
+    <h2>添加用户</h2>
     @if (!string.IsNullOrEmpty(error))
     {
         <div class="text-danger" style="margin-bottom:12px;">@error</div>
@@ -11,19 +12,31 @@
     <form asp-action="CreateTechnician" method="post">
         <div class="form-group">
             <label>用户名 <span class="text-danger">*</span></label>
-            <input name="userName" value="@(ViewBag.UserName)" placeholder="登录用户名，至少2个字符" />
+            <input name="userName" autocomplete="off" placeholder="登录用户名，至少2个字符" />
         </div>
         <div class="form-group">
             <label>密码 <span class="text-danger">*</span></label>
-            <input type="password" name="password" placeholder="至少6位" />
+            <input type="password" name="password" autocomplete="new-password" placeholder="至少6位" />
+        </div>
+        <div class="form-group">
+            <label>确认密码 <span class="text-danger">*</span></label>
+            <input type="password" name="confirmPassword" autocomplete="new-password" placeholder="请再次输入密码" />
         </div>
         <div class="form-group">
             <label>姓名</label>
-            <input name="realName" value="@(ViewBag.RealName)" placeholder="师傅真实姓名" />
+            <input name="realName" value="@(ViewBag.RealName)" placeholder="真实姓名" />
         </div>
         <div class="form-group">
             <label>联系电话</label>
             <input name="phone" value="@(ViewBag.Phone)" placeholder="手机号" />
+        </div>
+        <div class="form-group">
+            <label>角色 <span class="text-danger">*</span></label>
+            <select name="role" style="padding:8px; border:1px solid #d1d5db; border-radius:4px; max-width:400px;">
+                @if (role == 1) { <option value="1" selected>管理员</option> } else { <option value="1">管理员</option> }
+                @if (role == 2) { <option value="2" selected>用户</option> } else { <option value="2">用户</option> }
+                @if (role == 3) { <option value="3" selected>师傅</option> } else { <option value="3">师傅</option> }
+            </select>
         </div>
         @Html.AntiForgeryToken()
         <button type="submit" class="btn btn-primary">创建</button>

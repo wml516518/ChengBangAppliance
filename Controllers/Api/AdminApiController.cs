@@ -335,7 +335,7 @@ public class AdminApiController : ControllerBase
         return Ok(new { ok = true });
     }
 
-    // ==================== 师傅管理 ====================
+    // ==================== 用户管理 ====================
 
     [HttpGet("technicians")]
     public IActionResult GetTechnicians()
@@ -343,11 +343,18 @@ public class AdminApiController : ControllerBase
         var user = GetCurrentUser();
         if (user == null || !user.IsAdmin) return Forbidden();
 
-        var technicians = _db.Db.Queryable<User>().Where(u => u.IsTechnician).OrderByDescending(u => u.CreateTime).ToList()
-            .Select(u => new { u.Id, u.UserName, u.RealName, u.Phone, u.CreateTime });
+        var allUsers = _db.Db.Queryable<User>().OrderByDescending(u => u.CreateTime).ToList()
+            .Select(u => new { u.Id, u.UserName, u.RealName, u.Phone, u.CreateTime, u.IsAdmin, u.IsTechnician, roleName = GetRoleName(u) }).ToList();
         var nonTech = _db.Db.Queryable<User>().Where(u => !u.IsTechnician).ToList()
             .Select(u => new { u.Id, u.UserName, u.RealName, u.Phone });
-        return Ok(new { ok = true, technicians, availableUsers = nonTech });
+        return Ok(new { ok = true, allUsers, technicians = allUsers.Where(u => u.IsTechnician).ToList(), availableUsers = nonTech });
+    }
+
+    private static string GetRoleName(User u)
+    {
+        if (u.IsAdmin) return "管理员";
+        if (u.IsTechnician) return "师傅";
+        return "用户";
     }
 
     [HttpPost("technicians/set/{userId:int}")]
@@ -384,15 +391,50 @@ public class AdminApiController : ControllerBase
         var user = GetCurrentUser();
         if (user == null || !user.IsAdmin) return Forbidden();
 
-        var (ok, msg) = _auth.Register(req.UserName ?? "", req.Password ?? "", req.RealName, req.Phone, false);
-        if (!ok) return Ok(new { ok = false, msg });
+        if (string.IsNullOrWhiteSpace(req.Password) || req.Password != req.ConfirmPassword)
+            return Ok(new { ok = false, msg = "两次输入的密码不一致" });
 
-        var newUser = _db.Db.Queryable<User>().First(u => u.UserName == req.UserName!.Trim());
-        if (newUser != null)
+        int role = req.Role;
+        bool isAdmin = (role == 1);
+        bool isTechnician = (role == 3);
+        var (ok, msg) = _auth.Register(req.UserName ?? "", req.Password ?? "", req.RealName, req.Phone, isAdmin, isTechnician);
+        if (!ok) return Ok(new { ok = false, msg });
+        return Ok(new { ok = true });
+    }
+
+    [HttpGet("technicians/{userId:int}")]
+    public IActionResult GetUser(int userId)
+    {
+        var user = GetCurrentUser();
+        if (user == null || !user.IsAdmin) return Forbidden();
+
+        var target = _db.Db.Queryable<User>().First(u => u.Id == userId);
+        if (target == null) return Ok(new { ok = false, msg = "用户不存在" });
+        int role = target.IsAdmin ? 1 : (target.IsTechnician ? 3 : 2);
+        return Ok(new { ok = true, user = new { target.Id, target.UserName, target.RealName, target.Phone, role } });
+    }
+
+    [HttpPost("technicians/update/{userId:int}")]
+    public IActionResult UpdateUser(int userId, [FromBody] UpdateUserRequest req)
+    {
+        var user = GetCurrentUser();
+        if (user == null || !user.IsAdmin) return Forbidden();
+
+        var target = _db.Db.Queryable<User>().First(u => u.Id == userId);
+        if (target == null) return Ok(new { ok = false, msg = "用户不存在" });
+
+        if (!string.IsNullOrWhiteSpace(req.NewPassword))
         {
-            newUser.IsTechnician = true;
-            _db.Db.Updateable(newUser).ExecuteCommand();
+            if (req.NewPassword.Length < 6) return Ok(new { ok = false, msg = "新密码至少6个字符" });
+            if (req.NewPassword != req.ConfirmNewPassword) return Ok(new { ok = false, msg = "两次输入的密码不一致" });
+            target.PasswordHash = AuthService.HashPassword(req.NewPassword);
         }
+
+        target.RealName = req.RealName?.Trim();
+        target.Phone = req.Phone?.Trim();
+        target.IsAdmin = (req.Role == 1);
+        target.IsTechnician = (req.Role == 3);
+        _db.Db.Updateable(target).ExecuteCommand();
         return Ok(new { ok = true });
     }
 
@@ -432,6 +474,19 @@ public class CreateTechRequest
 {
     public string? UserName { get; set; }
     public string? Password { get; set; }
+    public string? ConfirmPassword { get; set; }
     public string? RealName { get; set; }
     public string? Phone { get; set; }
+    /// <summary>1=管理员 2=用户 3=师傅</summary>
+    public int Role { get; set; } = 2;
+}
+
+public class UpdateUserRequest
+{
+    public string? RealName { get; set; }
+    public string? Phone { get; set; }
+    /// <summary>1=管理员 2=用户 3=师傅</summary>
+    public int Role { get; set; } = 2;
+    public string? NewPassword { get; set; }
+    public string? ConfirmNewPassword { get; set; }
 }

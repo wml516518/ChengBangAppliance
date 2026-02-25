@@ -23,7 +23,7 @@
       </view>
       <view class="menu-item" @click="go('/pages/admin/technicians')">
         <text class="menu-icon">👷</text>
-        <text class="menu-label">师傅管理</text>
+        <text class="menu-label">用户管理</text>
       </view>
     </view>
     <button class="btn logout" @click="doLogout">退出登录</button>

@@ -14,7 +14,8 @@
     { "path": "pages/admin/manual-order-detail", "style": { "navigationBarTitleText": "工单详情" } },
     { "path": "pages/admin/service-types", "style": { "navigationBarTitleText": "服务类型管理" } },
     { "path": "pages/admin/service-items", "style": { "navigationBarTitleText": "服务项目管理" } },
-    { "path": "pages/admin/technicians", "style": { "navigationBarTitleText": "师傅管理" } },
+    { "path": "pages/admin/technicians", "style": { "navigationBarTitleText": "用户管理" } },
+    { "path": "pages/admin/user-edit", "style": { "navigationBarTitleText": "编辑用户" } },
     { "path": "pages/worker/index", "style": { "navigationBarTitleText": "我的工单" } },
     { "path": "pages/worker/order-detail", "style": { "navigationBarTitleText": "工单详情" } }
   ],

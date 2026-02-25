@@ -48,7 +48,7 @@ export const updateServiceItem = (id, data) =>
 export const deleteServiceItem = (id) =>
   request({ url: `/api/AdminApi/service-items/${id}`, method: 'DELETE' })
 
-// 师傅管理
+// 用户管理
 export const getTechnicians = () =>
   request({ url: '/api/AdminApi/technicians', method: 'GET' })
 
@@ -60,6 +60,12 @@ export const removeTechnician = (userId) =>
 
 export const createTechnician = (data) =>
   request({ url: '/api/AdminApi/technicians/create', method: 'POST', data })
+
+export const getUserDetail = (userId) =>
+  request({ url: `/api/AdminApi/technicians/${userId}`, method: 'GET' })
+
+export const updateUser = (userId, data) =>
+  request({ url: `/api/AdminApi/technicians/update/${userId}`, method: 'POST', data })
 
 // 师傅列表（选择用）
 export const getWorkers = () =>

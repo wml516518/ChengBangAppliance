@@ -19,11 +19,10 @@ ARG VITE_BASE_URL=
 ENV VITE_BASE_URL=${VITE_BASE_URL}
 # 抑制 Vite CJS Node API 弃用警告（仅影响构建日志）
 ENV NODE_OPTIONS="--no-deprecation"
-# UniApp CLI 期望源码在 src/ 下（manifest.json 等）
-RUN mkdir -p src && \
-  cp manifest.json pages.json App.vue main.js index.html config.js src/ && \
-  cp -r api pages utils src/
+# 确保不存在 src/ 目录，让 UniApp CLI 使用项目根目录作为源码目录
+RUN rm -rf src
 RUN npm run build:h5
+RUN echo "=== Build output ===" && ls -laR /app/dist/ 2>/dev/null || true
 # 统一复制到固定路径（兼容 dist/build/h5、dist/h5 等）
 RUN mkdir -p /tmp/h5out && \
   (cp -r /app/dist/build/h5/. /tmp/h5out/ 2>/dev/null) || \
